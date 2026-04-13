@@ -1,0 +1,39 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "parking-alert-ab616",
+          "appId": "1:410629172210:android:2b012ff4fe7a8ab87c196b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "parking-alert-ab616",
+          "configurations": {
+            "android": "1:410629172210:android:2b012ff4fe7a8ab87c196b",
+            "ios": "1:410629172210:ios:d634135fcc3da9db7c196b",
+            "macos": "1:410629172210:ios:d634135fcc3da9db7c196b",
+            "web": "1:410629172210:web:e2f14a67185328707c196b",
+            "windows": "1:410629172210:web:131f98db8755653b7c196b"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}
