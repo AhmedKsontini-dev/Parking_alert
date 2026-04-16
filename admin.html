@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Parking Alert</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--primary); }
+        
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 24px;
+        }
+        .user-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .user-card:hover { transform: translateY(-5px); }
+        .user-info { margin-bottom: 20px; }
+        .matricule { font-size: 1.25rem; font-weight: 700; background: #e0e7ff; padding: 4px 12px; borderRadius: 8px; color: var(--primary); }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .pending { background: #fef3c7; color: #92400e; }
+        .approved { background: #d1fae5; color: #065f46; }
+
+        .image-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .image-box {
+            text-align: center;
+        }
+        .image-box img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            cursor: zoom-in;
+            border: 1px solid #e2e8f0;
+        }
+        .image-box span { font-size: 0.7rem; color: #64748b; margin-top: 4px; display: block; }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-approve { background: var(--success); color: white; }
+        .btn-approve:hover { background: #059669; }
+        .btn-approve:disabled { background: #94a3b8; cursor: not-allowed; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Dashboard Admin</h1>
+        <button onclick="fetchUsers()" style="background: white; border: 1px solid var(--primary); color: var(--primary); width: auto;">Actualiser</button>
+    </div>
+
+    <div id="userGrid" class="user-grid">
+        <!-- Les utilisateurs seront chargés ici -->
+    </div>
+
+    <div id="imageModal" class="modal" onclick="this.style.display='none'">
+        <img id="modalImg" src="">
+    </div>
+
+    <script>
+        const API_BASE = '/api/users';
+
+        async function fetchUsers() {
+            const grid = document.getElementById('userGrid');
+            grid.innerHTML = '<p>Chargement...</p>';
+            try {
+                const res = await fetch(API_BASE);
+                const users = await res.json();
+                
+                grid.innerHTML = users.map(user => `
+                    <div class="user-card">
+                        <div class="user-info">
+                            <span class="matricule">${user.matricule}</span>
+                            <span class="status-badge ${user.isApproved ? 'approved' : 'pending'}">
+                                ${user.isApproved ? 'Approuvé' : 'En attente'}
+                            </span>
+                            <p style="margin-top: 12px">📞 ${user.phone}</p>
+                        </div>
+                        
+                        <div class="image-container">
+                            <div class="image-box">
+                                <img src="data:image/jpeg;base64,${user.frontCardImage}" onclick="showImage(this.src)">
+                                <span>Carte Grise (Recto)</span>
+                            </div>
+                            <div class="image-box">
+                                <img src="data:image/jpeg;base64,${user.backCardImage}" onclick="showImage(this.src)">
+                                <span>Carte Grise (Verso)</span>
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn-approve" 
+                                ${user.isApproved ? 'disabled' : ''} 
+                                onclick="approveUser('${user.matricule}')">
+                                ${user.isApproved ? 'Déjà validé' : 'Approuver le compte'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                grid.innerHTML = '<p>Erreur lors du chargement des utilisateurs.</p>';
+            }
+        }
+
+        async function approveUser(matricule) {
+            if (!confirm(`Approuver l'utilisateur ${matricule} ?`)) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/${matricule}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isApproved: true })
+                });
+                
+                if (res.ok) {
+                    alert('Utilisateur approuvé !');
+                    fetchUsers();
+                } else {
+                    alert('Erreur lors de l\'approbation.');
+                }
+            } catch (err) {
+                alert('Erreur serveur.');
+            }
+        }
+
+        function showImage(src) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImg');
+            img.src = src;
+            modal.style.display = 'flex';
+        }
+
+        // Chargement initial
+        fetchUsers();
+    </script>
+</body>
+</html>
