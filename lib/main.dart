@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'notification_service.dart';
 import 'splash_view.dart';
 // import 'firebase_options.dart';
@@ -11,15 +11,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  /*
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp();
   
   // ⚡ Enregistrer le handler de messages en arrière-plan
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  */
-  
+
   // 🔔 Initialiser NotificationService
   await NotificationService.initialize();
 
@@ -49,16 +45,17 @@ class ParkingAlertAppState extends State<ParkingAlertApp> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Load Theme
     final isDark = prefs.getBool('isDarkMode') ?? false;
-    
+
     // Load Locale
     final languageCode = prefs.getString('languageCode');
-    
+
     setState(() {
       _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-      if (languageCode != null && (languageCode == 'en' || languageCode == 'fr')) {
+      if (languageCode != null &&
+          (languageCode == 'en' || languageCode == 'fr')) {
         _locale = Locale(languageCode);
       } else {
         _locale = const Locale('en'); // Default to English if invalid
@@ -100,10 +97,7 @@ class ParkingAlertAppState extends State<ParkingAlertApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('fr'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('fr')],
       home: const SplashView(), // 🚀 Toujours démarrer sur SplashView
     );
   }

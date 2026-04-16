@@ -8,7 +8,7 @@ class ApiService {
   // Use http://localhost:3000 for iOS Simulator OR Web/Chrome
   static const String baseUrl = kIsWeb 
       ? 'http://localhost:3000/api' 
-      : 'http://10.0.2.2:3000/api';
+      : 'http://192.168.1.12:3000/api';
 
   // 👤 Users
   static Future<Map<String, dynamic>?> getUser(String matricule) async {

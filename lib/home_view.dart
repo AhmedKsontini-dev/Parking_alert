@@ -7,6 +7,7 @@ import 'intro_view.dart';
 import 'core/api_service.dart';
 import 'theme_app.dart';
 import 'notifications_view.dart';
+import 'notification_service.dart';
 
 class HomeView extends StatefulWidget {
   final String userMatricule;
@@ -28,7 +29,6 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView>
     with SingleTickerProviderStateMixin {
-
   late TextEditingController _plateCtrl;
   late TextEditingController _messageCtrl;
 
@@ -50,11 +50,15 @@ class _HomeViewState extends State<HomeView>
       duration: const Duration(milliseconds: 1000),
     );
     _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut),
-    );
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
 
     _ctrl.forward();
+    
+    // 🔔 Enregistrer le Token FCM pour les notifications push
+    NotificationService.updateTokenInBackend(widget.userMatricule);
   }
 
   @override
@@ -66,21 +70,26 @@ class _HomeViewState extends State<HomeView>
   }
 
   void _showNotifications() {
-     showModalBottomSheet(
+    showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-          child: NotificationsView(userMatricule: widget.userMatricule),
-        ),
-      ),
+      builder:
+          (context) => Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
+              child: NotificationsView(userMatricule: widget.userMatricule),
+            ),
+          ),
     ).then((_) => widget.onRefreshNotifications());
   }
 
@@ -91,14 +100,20 @@ class _HomeViewState extends State<HomeView>
 
     if (plate.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.errorPlateEmpty), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.errorPlateEmpty),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
     if (message.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.errorMessageEmpty), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.errorMessageEmpty),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -112,7 +127,12 @@ class _HomeViewState extends State<HomeView>
       if (user == null) {
         setState(() => _isSending = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.errorPlateNotRegistered), behavior: SnackBarBehavior.floating),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.errorPlateNotRegistered,
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
         return;
       }
@@ -131,7 +151,10 @@ class _HomeViewState extends State<HomeView>
       setState(() => _isSending = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.successAlertSent), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text(l10n.successAlertSent),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
 
       _plateCtrl.clear();
@@ -139,7 +162,10 @@ class _HomeViewState extends State<HomeView>
     } catch (e) {
       setState(() => _isSending = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("${l10n.error}: $e"), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text("${l10n.error}: $e"),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -159,12 +185,18 @@ class _HomeViewState extends State<HomeView>
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         flexibleSpace: AppTheme.getAppBarGradient(isDark),
-        title: Text(l10n.appTitle, style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+        title: Text(
+          l10n.appTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+          ),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -172,7 +204,10 @@ class _HomeViewState extends State<HomeView>
             icon: Badge(
               label: Text('${widget.pendingCount}'),
               isLabelVisible: widget.pendingCount > 0,
-              child: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                color: Colors.white,
+              ),
             ),
           ),
           IconButton(
@@ -180,24 +215,30 @@ class _HomeViewState extends State<HomeView>
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  title: Text(l10n.logout),
-                  content: Text(l10n.logoutConfirm),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(l10n.cancel),
+                builder:
+                    (context) => AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      title: Text(l10n.logout),
+                      content: Text(l10n.logoutConfirm),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(l10n.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _logout();
+                          },
+                          child: Text(
+                            l10n.logout,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _logout();
-                      },
-                      child: Text(l10n.logout, style: const TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
               );
             },
           ),
@@ -232,10 +273,16 @@ class _HomeViewState extends State<HomeView>
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: isDark ? colorScheme.surfaceVariant.withOpacity(0.5) : Colors.white,
+                    color:
+                        isDark
+                            ? colorScheme.surfaceVariant.withOpacity(0.5)
+                            : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                      color:
+                          isDark
+                              ? Colors.white10
+                              : Colors.black.withOpacity(0.05),
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -243,7 +290,7 @@ class _HomeViewState extends State<HomeView>
                         blurRadius: 20,
                         spreadRadius: 5,
                         offset: const Offset(0, 10),
-                      )
+                      ),
                     ],
                   ),
                   child: Column(
@@ -251,11 +298,18 @@ class _HomeViewState extends State<HomeView>
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded, color: colorScheme.secondary, size: 28),
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: colorScheme.secondary,
+                            size: 28,
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             l10n.newAlert,
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -266,7 +320,9 @@ class _HomeViewState extends State<HomeView>
                         inputFormatters: [TunisianPlateFormatter()],
                         decoration: InputDecoration(
                           hintText: l10n.plateNumberHint,
-                          prefixIcon: const Icon(Icons.directions_car_filled_rounded),
+                          prefixIcon: const Icon(
+                            Icons.directions_car_filled_rounded,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -285,14 +341,17 @@ class _HomeViewState extends State<HomeView>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           gradient: LinearGradient(
-                            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+                            colors: [
+                              colorScheme.primary,
+                              colorScheme.primary.withOpacity(0.8),
+                            ],
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: colorScheme.primary.withOpacity(0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
-                            )
+                            ),
                           ],
                         ),
                         child: ElevatedButton(
@@ -300,31 +359,61 @@ class _HomeViewState extends State<HomeView>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
-                          child: _isSending
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      l10n.sendAlert,
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                    ),
-                                  ],
-                                ),
+                          child:
+                              _isSending
+                                  ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                  : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.send_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        l10n.sendAlert,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => NotificationService.showTestNotification(),
+                    icon: const Icon(Icons.notifications_active),
+                    label: const Text("Tester la notification PUSH"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange.shade100,
+                      foregroundColor: Colors.orange.shade900,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 48),
                 Center(
                   child: Column(
                     children: [
-                      Icon(Icons.security_rounded, color: colorScheme.secondary.withOpacity(0.6), size: 40),
+                      Icon(
+                        Icons.security_rounded,
+                        color: colorScheme.secondary.withOpacity(0.6),
+                        size: 40,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         l10n.secureAnonymousUrban,

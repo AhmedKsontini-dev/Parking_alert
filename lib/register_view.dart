@@ -62,9 +62,9 @@ class _RegisterViewState extends State<RegisterView>
     super.dispose();
   }
 
-  Future<void> _pickImage(bool isFront) async {
+  Future<void> _pickImage(bool isFront, ImageSource source) async {
     final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
+      source: source,
       maxWidth: 800,
       imageQuality: 85,
     );
@@ -74,6 +74,149 @@ class _RegisterViewState extends State<RegisterView>
         else _backImage = image;
       });
     }
+  }
+
+  void _showImageSourceActionSheet(bool isFront) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? const Color(0xFF1E1E1E) 
+              : Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: colorScheme.outlineVariant.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              "Importer l'image (Carte Grise)",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: colorScheme.primary,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Choisissez une source pour l'image",
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.textMuted,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSourceItem(
+                    icon: Icons.camera_alt_rounded,
+                    label: "Prendre une photo",
+                    subtitle: "Utiliser l'appareil",
+                    color: AppTheme.registerPrimary,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImage(isFront, ImageSource.camera);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildSourceItem(
+                    icon: Icons.photo_library_rounded,
+                    label: "Depuis Galerie",
+                    subtitle: "Choisir un fichier",
+                    color: Colors.indigo,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImage(isFront, ImageSource.gallery);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSourceItem({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withOpacity(0.03) : color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.1) : color.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: AppTheme.textMuted,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<String?> _imageToBase64(XFile? file) async {
@@ -101,33 +244,6 @@ class _RegisterViewState extends State<RegisterView>
       final String matricule = _plateCtrl.text.trim();
       final String phone = _phoneCtrl.text.trim();
 
-      final existingUser = await ApiService.getUser(matricule);
-      
-      if (existingUser != null) {
-        final bool isApproved = existingUser['isApproved'] ?? false;
-        final String savedPhone = existingUser['phone'] ?? phone;
-        
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userMatricule', matricule);
-        await prefs.setString('userPhone', savedPhone);
-
-        if (!mounted) return;
-        setState(() => _isLoading = false);
-
-        if (!isApproved) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const WaitingApprovalView()));
-        } else {
-          await NotificationService.updateTokenInBackend(matricule);
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MainView(userMatricule: matricule, userPhone: savedPhone),
-            ),
-          );
-        }
-        return;
-      }
-
       final String? frontBase64 = await _imageToBase64(_frontImage);
       final String? backBase64 = await _imageToBase64(_backImage);
 
@@ -138,7 +254,12 @@ class _RegisterViewState extends State<RegisterView>
         'backCardImage': backBase64,
       });
 
-      if (!success) throw Exception("Failed to register user on server");
+      if (!success) {
+        // Si l'inscription échoue, c'est peut-être parce que l'utilisateur existe déjà.
+        // Dans ce cas, on vérifie si on peut quand même le connecter (mais vers WaitingApprovalView)
+        final existingUser = await ApiService.getUser(matricule);
+        if (existingUser == null) throw Exception("Échec de l'inscription sur le serveur");
+      }
       
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userMatricule', matricule);
@@ -147,6 +268,7 @@ class _RegisterViewState extends State<RegisterView>
       if (!mounted) return;
       setState(() => _isLoading = false);
 
+      // Redirection SYSTÉMATIQUE vers WaitingApprovalView après une inscription/tentative
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const WaitingApprovalView()));
 
     } catch (e) {
@@ -218,7 +340,7 @@ class _RegisterViewState extends State<RegisterView>
                         child: _buildImagePicker(
                           label: "Recto (Front)",
                           image: _frontImage,
-                          onTap: () => _pickImage(true),
+                          onTap: () => _showImageSourceActionSheet(true),
                           colorScheme: colorScheme,
                         ),
                       ),
@@ -227,7 +349,7 @@ class _RegisterViewState extends State<RegisterView>
                         child: _buildImagePicker(
                           label: "Verso (Back)",
                           image: _backImage,
-                          onTap: () => _pickImage(false),
+                          onTap: () => _showImageSourceActionSheet(false),
                           colorScheme: colorScheme,
                         ),
                       ),
