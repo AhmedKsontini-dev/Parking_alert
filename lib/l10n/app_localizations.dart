@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Parking Alert'**
   String get appTitle;
 
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get version;
+
   /// No description provided for @settings.
   ///
   /// In en, this message translates to:
@@ -169,12 +175,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Get in touch with us'**
   String get helpSupportSubtitle;
-
-  /// No description provided for @version.
-  ///
-  /// In en, this message translates to:
-  /// **'Version'**
-  String get version;
 
   /// No description provided for @selectLanguage.
   ///

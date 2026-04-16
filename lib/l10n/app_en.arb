@@ -1,5 +1,6 @@
 {
   "appTitle": "Parking Alert",
+  "version": "Version",
   "settings": "Settings",
   "darkMode": "Dark Mode",
   "darkModeSubtitle": "Switch between light and dark themes",
@@ -11,7 +12,6 @@
   "privacyPolicySubtitle": "How we handle data",
   "helpSupport": "Help & Support",
   "helpSupportSubtitle": "Get in touch with us",
-  "version": "Version",
   "selectLanguage": "Select Language",
   "french": "French",
   "english": "English",

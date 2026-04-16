@@ -1,5 +1,6 @@
 {
   "appTitle": "Parking Alert",
+  "version": "Version",
   "settings": "Paramètres",
   "darkMode": "Mode Sombre",
   "darkModeSubtitle": "Alterner entre les thèmes clair et sombre",
@@ -11,7 +12,6 @@
   "privacyPolicySubtitle": "Comment nous traitons vos données",
   "helpSupport": "Aide et Support",
   "helpSupportSubtitle": "Contactez-nous",
-  "version": "Version",
   "selectLanguage": "Choisir la Langue",
   "french": "Français",
   "english": "Anglais",

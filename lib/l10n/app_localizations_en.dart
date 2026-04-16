@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Parking Alert';
 
   @override
+  String get version => 'Version';
+
+  @override
   String get settings => 'Settings';
 
   @override
@@ -43,9 +46,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpSupportSubtitle => 'Get in touch with us';
-
-  @override
-  String get version => 'Version';
 
   @override
   String get selectLanguage => 'Select Language';
