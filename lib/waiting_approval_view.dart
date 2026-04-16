@@ -4,6 +4,7 @@ import 'core/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main_view.dart';
 import 'register_view.dart';
+import 'notification_service.dart';
 
 class WaitingApprovalView extends StatefulWidget {
   const WaitingApprovalView({super.key});
@@ -14,6 +15,20 @@ class WaitingApprovalView extends StatefulWidget {
 
 class _WaitingApprovalViewState extends State<WaitingApprovalView> {
   bool _isChecking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _registerToken();
+  }
+
+  Future<void> _registerToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final matricule = prefs.getString('userMatricule');
+    if (matricule != null) {
+      NotificationService.updateTokenInBackend(matricule);
+    }
+  }
 
   Future<void> _checkStatus() async {
     setState(() => _isChecking = true);

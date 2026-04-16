@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "410629172210",
-    "project_id": "parking-alert-ab616",
-    "storage_bucket": "parking-alert-ab616.firebasestorage.app"
+    "project_number": "870526902005",
+    "project_id": "parking-eb79a",
+    "storage_bucket": "parking-eb79a.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:410629172210:android:2b012ff4fe7a8ab87c196b",
+        "mobilesdk_app_id": "1:870526902005:android:012cd422a4220b73b12fbc",
         "android_client_info": {
           "package_name": "com.ahmed.parking_alert_app"
         }
@@ -15,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAZGmPnHy23nktx073yxCbKoXuQPijs2Ic"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:410629172210:android:7843a126e0982eab7c196b",
-        "android_client_info": {
-          "package_name": "com.ahmed.parkingalert"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAZGmPnHy23nktx073yxCbKoXuQPijs2Ic"
+          "current_key": "AIzaSyDbHn1HP354OsMly-7WO1LDP1RWXfe3_dY"
         }
       ],
       "services": {

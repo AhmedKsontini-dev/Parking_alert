@@ -392,19 +392,6 @@ class _HomeViewState extends State<HomeView>
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: () => NotificationService.showTestNotification(),
-                    icon: const Icon(Icons.notifications_active),
-                    label: const Text("Tester la notification PUSH"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange.shade100,
-                      foregroundColor: Colors.orange.shade900,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 48),
                 Center(
                   child: Column(
